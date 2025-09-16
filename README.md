@@ -1,5 +1,2 @@
-# component-creator
+# 辅助
 
-```
-composer create-project hyperf/component-creator
-```
