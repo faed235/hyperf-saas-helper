@@ -9,6 +9,7 @@ use Hyperf\Command\Annotation\Command;
 use Hyperf\DbConnection\Db;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputArgument;
+use function Hyperf\Config\config;
 use function Hyperf\Support\now;
 
 #[Command]
@@ -16,13 +17,13 @@ class GenerateParameterCommand extends HyperfCommand
 {
     public function __construct(protected ContainerInterface $container)
     {
-        parent::__construct('gen:api');
+        parent::__construct('faed:parameter');
     }
 
     public function configure(): void
     {
         parent::configure();
-        $this->setDescription('Hyperf Demo Command');
+        $this->setDescription('生成Request参数和swagger注释');
     }
 
     public function handle(): void
@@ -33,7 +34,7 @@ class GenerateParameterCommand extends HyperfCommand
         if ($connection){
             $fieldComments = $this->getFieldComments($tableName,$connection);
         }else{
-            $connections = ['default','pms_user','pms_public','pms_hotel','pms_clique','pms_public','pms_print','pms_aggregation'];
+            $connections = array_keys(config('databases'));
             foreach ($connections as $connection){
                 $fieldComments = $this->getFieldComments($tableName,$connection);
                 if ($fieldComments){

@@ -16,7 +16,7 @@ class UpApifoxCommand extends HyperfCommand
 {
     public function __construct(protected ContainerInterface $container)
     {
-        parent::__construct('up:apifox');
+        parent::__construct('faed:apifox');
     }
 
     public function configure(): void
