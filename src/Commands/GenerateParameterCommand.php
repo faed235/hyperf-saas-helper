@@ -111,8 +111,8 @@ class GenerateParameterCommand extends HyperfCommand
     protected function getArguments(): array
     {
         return [
-            ['name', InputArgument::REQUIRED, '主体名称'],
-            ['connection', InputArgument::OPTIONAL, '主体名称'],
+            ['name', InputArgument::REQUIRED, '表名称'],
+            ['connection', InputArgument::OPTIONAL, '连接名称'],
         ];
     }
 }
