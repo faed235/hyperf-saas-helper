@@ -1,6 +1,6 @@
 <?php
 
-namespace Faed\HyperfSaasHelper\SysNotice;
+namespace Faed\HyperfSaasHelper\SysNotices;
 
 
 use GuzzleHttp\Client;
