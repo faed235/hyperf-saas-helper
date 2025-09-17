@@ -6,7 +6,7 @@
     "php",
     "hyperf"
   ],
-  "description": "",
+  "description": "个人常用插件请请勿下载",
   "autoload": {
     "psr-4": {
       "Faed\\HyperfSaasHelper\\": "src/"
