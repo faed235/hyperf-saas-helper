@@ -30,9 +30,9 @@ class ConfigProvider
             'publish' => [
                 [
                     'id' => 'config',
-                    'description' => 'The config for faed/saas-hyperf-helper.',
-                    'source' => __DIR__ . '/../publish/saas_hyperf_helper.php',
-                    'destination' => BASE_PATH . '/config/autoload/saas_hyperf_helper.php',
+                    'description' => 'The config for faed/hyperf-saas-helper.',
+                    'source' => __DIR__ . '/../publish/hyperf_saas_helper.php',
+                    'destination' => BASE_PATH . '/config/autoload/hyperf_saas_helper.php',
                 ],
             ],
 
