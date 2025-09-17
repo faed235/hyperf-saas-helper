@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\Carbon;
+use Faed\HyperfSaasHelper\FluentCalculator;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use InvalidArgumentException as InvalidArgumentExceptionAlias;
@@ -123,7 +124,8 @@ if (!function_exists('multiGroupSum')){
 
             // 更新求和字段和计数
             foreach ($sumFields as $sumField) {
-                $result[$groupKey][$sumField] += floatval($item[$sumField] ?? 0);
+//                $result[$groupKey][$sumField] += floatval($item[$sumField] ?? 0);
+                $result[$groupKey][$sumField] = FluentCalculator::init($result[$groupKey][$sumField])->add(floatval($item[$sumField] ?? 0))->getResult();
             }
             $result[$groupKey]['count']++;
         }
