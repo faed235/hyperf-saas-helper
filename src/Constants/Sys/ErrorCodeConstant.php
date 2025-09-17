@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Faed\SaasHyperfHelper\Constants\Sys;
 
-use Faed\SaasHyperfHelper\Traits\ConstantTrait;
+use Faed\HyperfSaasHelper\Traits\ConstantTrait;
 use Hyperf\Constants\AbstractConstants;
 use Hyperf\Constants\Annotation\Constants;
 use Hyperf\Constants\Annotation\Message;

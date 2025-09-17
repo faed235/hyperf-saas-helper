@@ -6,7 +6,7 @@ namespace Faed\HyperfSaasHelper\Constants\Pms;
 use Hyperf\Constants\AbstractConstants;
 use Hyperf\Constants\Annotation\Constants;
 use Hyperf\Constants\Annotation\Message;
-use Faed\SaasHyperfHelper\Traits\ConstantTrait;
+use Faed\HyperfSaasHelper\Traits\ConstantTrait;
 
 #[Constants]
 class HotelHasModuleInitConstant extends AbstractConstants

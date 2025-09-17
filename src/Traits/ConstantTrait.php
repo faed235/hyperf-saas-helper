@@ -1,6 +1,6 @@
 <?php
 
-namespace Faed\SaasHyperfHelper\Traits;
+namespace Faed\HyperfSaasHelper\Traits;
 
 use ReflectionClass;
 
