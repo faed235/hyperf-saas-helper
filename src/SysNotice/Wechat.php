@@ -11,11 +11,6 @@ use function Hyperf\Support\now;
 
 class Wechat
 {
-    public static function getUri(string $level): string
-    {
-        return config('hyperf_saas_helper.sys_notice.wechat')[$level] ?? '';
-    }
-
     public static function sendText(string|array $text = [], string $level = 'debug'): array|string
     {
         $data = [];
@@ -41,7 +36,12 @@ class Wechat
         return self::request($url, $data);
     }
 
-    public static function request($url,$data): array
+    private static function getUri(string $level): string
+    {
+        return config('hyperf_saas_helper.sys_notice.wechat')[$level] ?? '';
+    }
+
+    private static function request($url,$data): array
     {
         if (env('WECHAT_ENABLE')){
             return [];
