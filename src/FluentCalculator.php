@@ -11,18 +11,21 @@ use JsonSerializable;
 /**
  * 流畅计算器类 - 支持链式调用的高精度数学运算工具
  *
- * @method Calculator add(string|float|int $number) 加法
- * @method Calculator sub(string|float|int $number) 减法
- * @method Calculator multiplication(string|float|int $number) 乘法
- * @method Calculator division(string|float|int $number) 除法
- * @method Calculator negativeNumber() 处理负数
- * @method Calculator abs() 绝对值
- * @method Calculator power(string|float|int $exponent) 幂运算
- * @method Calculator sqrt() 平方根
- * @method Calculator percentage(string|float|int $percent) 百分比计算
- * @method Calculator inverse() 取倒数
+ * @method self add(string|float|int $number) 加法
+ * @method self sub(string|float|int $number) 减法
+ * @method self multiplication(string|float|int $number) 乘法
+ * @method self division(string|float|int $number) 除法
+ * @method self negativeNumber() 处理负数
+ * @method self abs() 绝对值
+ * @method self power(string|float|int $exponent) 幂运算
+ * @method self sqrt() 平方根
+ * @method self percentage(string|float|int $percent) 百分比计算
+ * @method self inverse() 取倒数
+ *
+ * @method static self init(string|float|int $base) 初始化计算器
+ * @method static self sum(array $numbers) 数组求和
  */
-class Calculation implements JsonSerializable
+class FluentCalculator implements JsonSerializable
 {
     // 定义允许的操作方法（用于魔术方法验证）
     private const ALLOWED_METHODS = [
