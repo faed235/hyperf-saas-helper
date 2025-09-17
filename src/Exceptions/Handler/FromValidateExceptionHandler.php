@@ -32,11 +32,13 @@ class FromValidateExceptionHandler extends ExceptionHandler
     public function handle(Throwable $throwable, ResponseInterface $response): MessageInterface|ResponseInterface
     {
         if ($throwable instanceof ValidationException) {
+            // 阻止异常冒泡
+            $this->stopPropagation();
             // 格式化异常数据格式
             $trace = Log::traceTag();
             $data = json_encode(['trace'=>$trace,'error' => $throwable->validator->errors()->first(),'code'=>ErrorCodeConstant::VERIFICATION_ERROR],JSON_UNESCAPED_UNICODE);
             Log::get('Error',SysLogGroupConstant::HTTP)->error($data);
-            return $response->withStatus(HttpCodeConstant::UNPROCESSABLE_ENTITY)->withBody(new SwooleStream($data))->withAddedHeader('content-type', 'application/json');
+            return $response->withStatus(HttpCodeConstant::UNPROCESSABLE_ENTITY)->withBody(new SwooleStream($data));
         }
 
         return $response;
