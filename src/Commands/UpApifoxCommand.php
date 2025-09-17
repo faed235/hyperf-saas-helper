@@ -39,7 +39,7 @@ class UpApifoxCommand extends HyperfCommand
             }
         }
 
-        $url = sprintf('https://api.apifox.com/v1/projects/%d/import-openapi',config('saas_hyperf_helper.apifox.apifox_project_id'));
+        $url = sprintf('https://api.apifox.com/v1/projects/%d/import-openapi',config('hyperf_saas_helper.apifox.apifox_project_id'));
 
         foreach ($files as $file){
             $json = file_get_contents($file);
@@ -48,8 +48,8 @@ class UpApifoxCommand extends HyperfCommand
             $response = $client->post($url,[
                 'headers' => [
                     'Content-Type' => 'application/json; charset=utf-8',
-                    'X-Apifox-Api-Version'=>config('saas_hyperf_helper.apifox.apifox_version'),
-                    'Authorization'=>config('saas_hyperf_helper.apifox.apifox_token'),
+                    'X-Apifox-Api-Version'=>config('hyperf_saas_helper.apifox.apifox_version'),
+                    'Authorization'=>config('hyperf_saas_helper.apifox.apifox_token'),
                 ],
                 'json'=>[
                     'input'=>json_encode($apiArray),
