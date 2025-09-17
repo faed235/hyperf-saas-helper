@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Faed\SaasHyperfHelper\Constants\Sys;
+namespace Faed\HyperfSaasHelper\Constants\Sys;
 
 use Hyperf\Constants\AbstractConstants;
 use Hyperf\Constants\Annotation\Constants;

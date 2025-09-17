@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
 
-namespace Faed\SaasHyperfHelper\Constants\Sys;
+namespace Faed\HyperfSaasHelper\Constants\Sys;
 
 use Faed\HyperfSaasHelper\Traits\ConstantTrait;
 use Hyperf\Constants\AbstractConstants;
