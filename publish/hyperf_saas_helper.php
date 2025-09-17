@@ -22,4 +22,11 @@ return [
             'emergency'=>env('WECHAT_EMERGENCY'),
         ],
     ],
+
+    //http服务
+    'http'=>[
+        'sys'=>[
+
+        ],
+    ]
 ];
