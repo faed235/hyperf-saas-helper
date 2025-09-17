@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Faed\SaasHyperfHelper\Constants\Pms;
+namespace Faed\HyperfSaasHelper\Constants\Pms;
 use Hyperf\Constants\AbstractConstants;
 use Hyperf\Constants\Annotation\Constants;
 use Hyperf\Constants\Annotation\Message;
