@@ -10,7 +10,10 @@
   "autoload": {
     "psr-4": {
       "Faed\\HyperfSaasHelper\\": "src/"
-    }
+    },
+    "files": [
+      "src/helper.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
