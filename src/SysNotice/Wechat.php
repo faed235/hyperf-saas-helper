@@ -43,7 +43,7 @@ class Wechat
 
     private static function request($url,$data): array
     {
-        if (env('WECHAT_ENABLE')){
+        if (!env('WECHAT_ENABLE')){
             return [];
         }
         if (!$url){
