@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Faed\HyperfSaasHelper;
 
 use InvalidArgumentException;
@@ -7,7 +9,18 @@ use RuntimeException;
 use JsonSerializable;
 
 /**
- * 流畅计算器类 - 支持链式调用的数学运算工具
+ * 流畅计算器类 - 支持链式调用的高精度数学运算工具
+ *
+ * @method Calculator add(string|float|int $number) 加法
+ * @method Calculator sub(string|float|int $number) 减法
+ * @method Calculator multiplication(string|float|int $number) 乘法
+ * @method Calculator division(string|float|int $number) 除法
+ * @method Calculator negativeNumber() 处理负数
+ * @method Calculator abs() 绝对值
+ * @method Calculator power(string|float|int $exponent) 幂运算
+ * @method Calculator sqrt() 平方根
+ * @method Calculator percentage(string|float|int $percent) 百分比计算
+ * @method Calculator inverse() 取倒数
  */
 class Calculation implements JsonSerializable
 {
@@ -20,6 +33,7 @@ class Calculation implements JsonSerializable
     private string $base; // 使用字符串存储以保持精度
     private bool $frozen = false; // 防止计算完成后被意外修改
     private static bool $useBcMath = true; // 是否使用BC Math扩展
+    private static ?int $bcMathScale = null; // BC Math的小数点精度
 
     /**
      * 私有构造方法，防止直接实例化
@@ -45,9 +59,18 @@ class Calculation implements JsonSerializable
     /**
      * 设置是否使用BC Math扩展
      */
-    public static function useBcMath(bool $use = true): void
+    public static function useBcMath(bool $use = true, ?int $scale = null): void
     {
         self::$useBcMath = $use && function_exists('bcadd');
+        self::$bcMathScale = $scale;
+    }
+
+    /**
+     * 获取当前BC Math精度设置
+     */
+    public static function getBcMathScale(): ?int
+    {
+        return self::$bcMathScale;
     }
 
     /**
@@ -70,11 +93,29 @@ class Calculation implements JsonSerializable
     }
 
     /**
+     * 获取BC Math计算的精度
+     */
+    private function getBcScale(): int
+    {
+        return self::$bcMathScale ?? 10;
+    }
+
+    /**
+     * 标准化数字输入
+     */
+    private function normalizeNumber(string|float|int $number): string
+    {
+        return is_string($number) ? $number : (string)$number;
+    }
+
+    /**
      * 执行高精度加法
      */
     private function bcAdd(string $left, string $right): string
     {
-        return self::$useBcMath ? bcadd($left, $right, 10) : (string)($left + $right);
+        return self::$useBcMath
+            ? bcadd($left, $right, $this->getBcScale())
+            : (string)($left + $right);
     }
 
     /**
@@ -82,7 +123,9 @@ class Calculation implements JsonSerializable
      */
     private function bcSub(string $left, string $right): string
     {
-        return self::$useBcMath ? bcsub($left, $right, 10) : (string)($left - $right);
+        return self::$useBcMath
+            ? bcsub($left, $right, $this->getBcScale())
+            : (string)($left - $right);
     }
 
     /**
@@ -90,7 +133,9 @@ class Calculation implements JsonSerializable
      */
     private function bcMul(string $left, string $right): string
     {
-        return self::$useBcMath ? bcmul($left, $right, 10) : (string)($left * $right);
+        return self::$useBcMath
+            ? bcmul($left, $right, $this->getBcScale())
+            : (string)($left * $right);
     }
 
     /**
@@ -101,7 +146,9 @@ class Calculation implements JsonSerializable
         if ($right === '0') {
             throw new InvalidArgumentException('除数不能为零');
         }
-        return self::$useBcMath ? bcdiv($left, $right, 10) : (string)($left / $right);
+        return self::$useBcMath
+            ? bcdiv($left, $right, $this->getBcScale())
+            : (string)($left / $right);
     }
 
     /**
@@ -110,8 +157,7 @@ class Calculation implements JsonSerializable
     public function add(string|float|int $number): self
     {
         $this->ensureMutable();
-        $number = is_string($number) ? $number : (string)$number;
-        $this->base = $this->bcAdd($this->base, $number);
+        $this->base = $this->bcAdd($this->base, $this->normalizeNumber($number));
         return $this;
     }
 
@@ -121,8 +167,7 @@ class Calculation implements JsonSerializable
     public function sub(string|float|int $number): self
     {
         $this->ensureMutable();
-        $number = is_string($number) ? $number : (string)$number;
-        $this->base = $this->bcSub($this->base, $number);
+        $this->base = $this->bcSub($this->base, $this->normalizeNumber($number));
         return $this;
     }
 
@@ -132,8 +177,7 @@ class Calculation implements JsonSerializable
     public function multiplication(string|float|int $number): self
     {
         $this->ensureMutable();
-        $number = is_string($number) ? $number : (string)$number;
-        $this->base = $this->bcMul($this->base, $number);
+        $this->base = $this->bcMul($this->base, $this->normalizeNumber($number));
         return $this;
     }
 
@@ -145,8 +189,7 @@ class Calculation implements JsonSerializable
     public function division(string|float|int $number): self
     {
         $this->ensureMutable();
-        $number = is_string($number) ? $number : (string)$number;
-        $this->base = $this->bcDiv($this->base, $number);
+        $this->base = $this->bcDiv($this->base, $this->normalizeNumber($number));
         return $this;
     }
 
@@ -156,8 +199,7 @@ class Calculation implements JsonSerializable
     public function negativeNumber(): self
     {
         $this->ensureMutable();
-
-        if (bccomp($this->base, '0', 10) < 0) {
+        if (bccomp($this->base, '0', $this->getBcScale()) < 0) {
             $this->base = '0';
         }
         return $this;
@@ -179,25 +221,26 @@ class Calculation implements JsonSerializable
     public function power(string|float|int $exponent): self
     {
         $this->ensureMutable();
-        $exponent = is_string($exponent) ? $exponent : (string)$exponent;
+        $exponent = $this->normalizeNumber($exponent);
 
         if (self::$useBcMath) {
             $result = '1';
             $isNegative = str_starts_with($exponent, '-');
             $exponent = ltrim($exponent, '-');
 
-            // 简单实现，实际应用中可能需要更高效的算法
-            for ($i = 0; $i < $exponent; $i++) {
-                $result = bcmul($result, $this->base, 10);
+            // 简单实现幂运算
+            for ($i = 0; bccomp($exponent, '0', $this->getBcScale()) > 0; $i++) {
+                $exponent = $this->bcSub($exponent, '1');
+                $result = $this->bcMul($result, $this->base);
             }
 
             if ($isNegative) {
-                $result = bcdiv('1', $result, 10);
+                $result = $this->bcDiv('1', $result);
             }
 
             $this->base = $result;
         } else {
-            $this->base = (string)pow($this->base, $exponent);
+            $this->base = (string)pow((float)$this->base, (float)$exponent);
         }
 
         return $this;
@@ -212,23 +255,22 @@ class Calculation implements JsonSerializable
     {
         $this->ensureMutable();
 
-        if (bccomp($this->base, '0', 10) < 0) {
+        if (bccomp($this->base, '0', $this->getBcScale()) < 0) {
             throw new InvalidArgumentException('不能对负数开平方根');
         }
 
         if (self::$useBcMath) {
-            // BC Math没有直接的sqrt函数，使用牛顿迭代法近似计算
+            // 使用牛顿迭代法近似计算平方根
             $x = $this->base;
-            $guess = bcdiv($x, '2', 10);
+            $guess = $this->bcDiv($x, '2');
 
             for ($i = 0; $i < 100; $i++) {
-                $newGuess = bcdiv(
-                    bcadd($guess, bcdiv($x, $guess, 10), 10),
-                    '2',
-                    10
+                $newGuess = $this->bcDiv(
+                    $this->bcAdd($guess, $this->bcDiv($x, $guess)),
+                    '2'
                 );
 
-                if (bccomp($newGuess, $guess, 10) === 0) {
+                if (bccomp($newGuess, $guess, $this->getBcScale()) === 0) {
                     break;
                 }
 
@@ -237,7 +279,7 @@ class Calculation implements JsonSerializable
 
             $this->base = $guess;
         } else {
-            $this->base = (string)sqrt($this->base);
+            $this->base = (string)sqrt((float)$this->base);
         }
 
         return $this;
@@ -251,8 +293,11 @@ class Calculation implements JsonSerializable
     public function percentage(string|float|int $percent): self
     {
         $this->ensureMutable();
-        $percent = is_string($percent) ? $percent : (string)$percent;
-        $this->base = $this->bcMul($this->base, bcdiv($percent, '100', 10));
+        $percent = $this->normalizeNumber($percent);
+        $this->base = $this->bcMul(
+            $this->base,
+            $this->bcDiv($percent, '100')
+        );
         return $this;
     }
 
@@ -269,21 +314,21 @@ class Calculation implements JsonSerializable
             throw new InvalidArgumentException('零没有倒数');
         }
 
-        $this->base = bcdiv('1', $this->base, 10);
+        $this->base = $this->bcDiv('1', $this->base);
         return $this;
     }
 
     /**
      * 数组求和（保持精度）
      *
-     * @param array $numbers 数字数组，可以是字符串、浮点数或整数
+     * @param array<string|float|int> $numbers 数字数组
      * @return self
      */
     public static function sum(array $numbers): self
     {
         $sum = '0';
         foreach ($numbers as $number) {
-            $number = is_string($number) ? $number : (string)$number;
+            $number = (new self($sum))->normalizeNumber($number);
             $sum = (new self($sum))->add($number)->getRawValue();
         }
         return new self($sum);
@@ -312,8 +357,8 @@ class Calculation implements JsonSerializable
         $value = $this->base;
 
         // 处理科学计数法
-        if (str_contains($value, 'E') || str_contains($value, 'e')) {
-            $value = sprintf('%.'.$precision.'f', $value);
+        if (preg_match('/[Ee]/', $value)) {
+            $value = sprintf('%.'.$precision.'F', $value);
         }
 
         // 如果没有小数部分，直接返回
@@ -324,18 +369,30 @@ class Calculation implements JsonSerializable
         // 处理精度
         $parts = explode('.', $value, 2);
         $integerPart = $parts[0];
-        $decimalPart = isset($parts[1]) ? $parts[1] : '';
+        $decimalPart = $parts[1] ?? '';
 
         // 截断或四舍五入
         if (strlen($decimalPart) > $precision) {
             if ($roundUp) {
                 // 向上取整
-                $rounded = bcadd($value, (string)('0.' . str_repeat('0', $precision) . '1'), $precision);
+                $rounded = $this->bcAdd(
+                    $value,
+                    '0.' . str_repeat('0', $precision) . '1'
+                );
+                $rounded = substr($rounded, 0, strpos($rounded, '.') + $precision + 1);
             } else {
                 // 四舍五入
-                $rounded = round($value, $precision, PHP_ROUND_HALF_UP);
-                // 防止round函数使用科学计数法
-                $rounded = sprintf('%.'.$precision.'f', $rounded);
+                if (self::$useBcMath) {
+                    $rounded = bcadd(
+                        $value,
+                        '0.' . str_repeat('0', $precision) . '5',
+                        $precision + 1
+                    );
+                    $rounded = substr($rounded, 0, strpos($rounded, '.') + $precision + 1);
+                } else {
+                    $rounded = round((float)$value, $precision, PHP_ROUND_HALF_UP);
+                    $rounded = sprintf('%.'.$precision.'F', $rounded);
+                }
             }
 
             // 去除可能的小数点后多余的零
@@ -358,7 +415,7 @@ class Calculation implements JsonSerializable
 
         // 处理负号
         $sign = '';
-        if (strpos($value, '-') === 0) {
+        if (str_starts_with($value, '-')) {
             $sign = '-';
             $value = substr($value, 1);
         }
@@ -366,10 +423,12 @@ class Calculation implements JsonSerializable
         // 分割整数和小数部分
         $parts = explode('.', $value, 2);
         $integerPart = $parts[0];
-        $decimalPart = isset($parts[1]) ? $parts[1] : '';
+        $decimalPart = $parts[1] ?? '';
 
         // 添加千位分隔符
-        $integerPart = number_format((int)$integerPart, 0, '', $thousandsSeparator);
+        if ($thousandsSeparator !== '') {
+            $integerPart = number_format((int)$integerPart, 0, '', $thousandsSeparator);
+        }
 
         // 组合结果
         $result = $sign . $integerPart;
@@ -432,5 +491,13 @@ class Calculation implements JsonSerializable
     public function __clone()
     {
         $this->frozen = false; // 克隆后解除冻结状态
+    }
+
+    /**
+     * 转换为字符串
+     */
+    public function __toString(): string
+    {
+        return $this->getResult();
     }
 }
