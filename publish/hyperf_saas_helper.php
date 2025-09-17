@@ -3,6 +3,8 @@
 use function Hyperf\Support\env;
 
 return [
+
+    //apifox 相关参数
     'apifox'=>[
         'apifox_project_id'=> env('APIFOX_PROJECT_ID'),
         'apifox_version'=> env('APIFOX_VERSION'),
