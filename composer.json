@@ -24,6 +24,7 @@
     "php": ">=8.1",
     "ext-bcmath": "*",
     "guzzlehttp/guzzle": "^7.10",
+    "hyperf-extension/jwt": "^3.1",
     "hyperf/command": "^3.1",
     "hyperf/config": "^3.1",
     "hyperf/constants": "^3.1",
