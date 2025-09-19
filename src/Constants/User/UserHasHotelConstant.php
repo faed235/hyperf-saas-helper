@@ -26,6 +26,6 @@ class UserHasHotelConstant
     #[Message("周边商家")]
     const SUPPLIER = 'supplier';
 
-    #[Message("周边商家")]
-    const ELECTRIC_APPLET = 'ELECTRIC_APPLET';
+    #[Message("住满多收益")]
+    const ELECTRIC_APPLET = 'electric_applet';
 }
