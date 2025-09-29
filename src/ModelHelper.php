@@ -13,6 +13,7 @@ use Hyperf\Database\Model\Builder;
  * @method static Builder startTime($value,string $field = 'created_at')
  * @method static Builder endTime($value,string $field = 'created_at')
  * @method static Builder hasSearch($name, $value, $field, string $operation='=')
+ * @method static Builder searchArrayLike(array $data = [], array $fields = [])
  */
 trait ModelHelper
 {
@@ -80,5 +81,17 @@ trait ModelHelper
                 }
             });
         });
+    }
+
+    public function scopeSearchArrayLike(Builder $builder,array $data = [],array $fields = []): Builder
+    {
+        foreach ($fields as $field){
+            if (array_key_exists($field,$data)){
+                $builder->when($data[$field],function (Builder $builder,$value) use ($field){
+                    $builder->where($field,'like',"%{$value}%");
+                });
+            }
+        }
+        return $builder;
     }
 }
