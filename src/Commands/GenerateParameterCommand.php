@@ -181,6 +181,7 @@ class GenerateParameterCommand extends HyperfCommand
             WHERE TABLE_SCHEMA = DATABASE() 
             AND TABLE_NAME = ?";
 
+
         $results = Db::connection($connection)->select($sql, [$tableName]);
 
         return array_map(function ($row) {
