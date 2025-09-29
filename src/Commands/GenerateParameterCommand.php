@@ -174,6 +174,7 @@ class GenerateParameterCommand extends HyperfCommand
         return ['string', $comment];
     }
 
+
     protected function getFieldComments(string $tableName, string $connection): array
     {
         $sql = "SELECT COLUMN_NAME, COLUMN_COMMENT, IS_NULLABLE, DATA_TYPE
