@@ -12,6 +12,7 @@ use Hyperf\Database\Model\Builder;
  * @method static Builder fieldDate($value,string $field = 'created_at')
  * @method static Builder startTime($value,string $field = 'created_at')
  * @method static Builder endTime($value,string $field = 'created_at')
+ * @method static Builder hasSearch($name, $value, $field, string $operation='=')
  */
 trait ModelHelper
 {
@@ -65,6 +66,19 @@ trait ModelHelper
     {
         return $builder->when($value,function (Builder $builder) use ($value,$field){
             $builder->whereDate($field,$value);
+        });
+    }
+
+    public function scopeHasSearch(Builder $builder,$name, $value, $field, string $operation='='): Builder
+    {
+        return $builder->when($value,function (Builder $builder) use ($name,$value,$field,$operation){
+            $builder->whereHas($name,function (Builder $builder) use ($value,$field,$operation){
+                if ($operation == 'like'){
+                    $builder->where($field,'like','%'.$value.'%');
+                }else{
+                    $builder->where($field,$operation,$value);
+                }
+            });
         });
     }
 }
