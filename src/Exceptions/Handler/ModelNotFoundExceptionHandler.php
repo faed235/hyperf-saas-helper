@@ -22,7 +22,7 @@ class ModelNotFoundExceptionHandler extends ExceptionHandler
             $trace = Log::traceTag();
             $data = json_encode(['trace'=>$trace,'error' =>'未查询到相关数据:'.$throwable->getMessage(),'code'=>ErrorCodeConstant::NOT_FOUND_ERROR],JSON_UNESCAPED_UNICODE);
             Log::get('Error',SysLogGroupConstant::HTTP)->error($data);
-            return $response->withStatus(HttpCodeConstant::NOT_FOUND)->withBody(new SwooleStream($data));
+            return $response->withStatus(HttpCodeConstant::NOT_FOUND)->withBody(new SwooleStream($data))->withAddedHeader('content-type', 'application/json');
         }
 
         // 交给下一个异常处理器

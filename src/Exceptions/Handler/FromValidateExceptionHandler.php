@@ -38,7 +38,7 @@ class FromValidateExceptionHandler extends ExceptionHandler
             $trace = Log::traceTag();
             $data = json_encode(['trace'=>$trace,'error' => $throwable->validator->errors()->first(),'code'=>ErrorCodeConstant::VERIFICATION_ERROR],JSON_UNESCAPED_UNICODE);
             Log::get('Error',SysLogGroupConstant::HTTP)->error($data);
-            return $response->withStatus(HttpCodeConstant::UNPROCESSABLE_ENTITY)->withBody(new SwooleStream($data));
+            return $response->withStatus(HttpCodeConstant::UNPROCESSABLE_ENTITY)->withBody(new SwooleStream($data))->withAddedHeader('content-type', 'application/json');
         }
 
         return $response;

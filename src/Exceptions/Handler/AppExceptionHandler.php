@@ -60,7 +60,7 @@ class AppExceptionHandler extends ExceptionHandler
 
 
         $data = json_encode(['trace'=>$trace,'error' => $throwable->getMessage(),'code'=>ErrorCodeConstant::SERVER_ERROR],JSON_UNESCAPED_UNICODE);
-        return $response->withStatus(HttpCodeConstant::SERVER_ERROR)->withBody(new SwooleStream($data));
+        return $response->withStatus(HttpCodeConstant::SERVER_ERROR)->withBody(new SwooleStream($data))->withAddedHeader('content-type', 'application/json');
 
     }
 

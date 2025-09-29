@@ -23,7 +23,7 @@ class CustomExceptionHandler extends ExceptionHandler
             $trace = Log::traceTag();
             $data = json_encode(['trace'=>$trace,'error' => $throwable->getMessage(),'code'=>ErrorCodeConstant::PARAMETER_ERROR],JSON_UNESCAPED_UNICODE);
             Log::get('Error',SysLogGroupConstant::HTTP)->error($data);
-            return $response->withStatus(HttpCodeConstant::BAD_REQUEST)->withBody(new SwooleStream($data));
+            return $response->withStatus(HttpCodeConstant::BAD_REQUEST)->withBody(new SwooleStream($data))->withAddedHeader('content-type', 'application/json');
         }
 
         // 交给下一个异常处理器
