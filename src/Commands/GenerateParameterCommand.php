@@ -44,9 +44,6 @@ class GenerateParameterCommand extends HyperfCommand
     public function configure(): void
     {
         parent::configure();
-        $this->setDescription('生成Request参数和swagger注释')
-            ->addArgument('name', InputArgument::REQUIRED, '表名称')
-            ->addArgument('connection', InputArgument::OPTIONAL, '数据库连接名称');
     }
 
     public function handle(): void
