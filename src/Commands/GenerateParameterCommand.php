@@ -16,7 +16,6 @@ use function Hyperf\Support\now;
 #[Command]
 class GenerateParameterCommand extends HyperfCommand
 {
-    protected string $defaultConnection = 'default';
 
     protected array $excludeFields = ['id', 'created_at', 'updated_at', 'deleted_at'];
 
@@ -49,10 +48,10 @@ class GenerateParameterCommand extends HyperfCommand
     public function handle(): void
     {
         $tableName = $this->input->getArgument('name');
-        $connection = $this->input->getArgument('connection') ?? $this->defaultConnection;
+        $specifiedConnection = $this->input->getArgument('connection');
 
         try {
-            $fieldComments = $this->getFieldComments($tableName, $connection);
+            $fieldComments = $this->getFieldComments($tableName, $specifiedConnection);
 
             if (empty($fieldComments)) {
                 $this->output->writeln('<error>未找到表或表没有字段: ' . $tableName . '</error>', OutputInterface::VERBOSITY_NORMAL);
@@ -72,7 +71,7 @@ class GenerateParameterCommand extends HyperfCommand
         $this->output->writeln('<comment>Swagger 参数注释:</comment>', OutputInterface::VERBOSITY_NORMAL);
 
         foreach ($fieldComments as $comment) {
-            if ($this->shouldExcludeField($comment['name'])) {
+            if ($this->isExcludedColumn($comment['name'])) {
                 continue;
             }
 
@@ -102,39 +101,97 @@ class GenerateParameterCommand extends HyperfCommand
     {
         $this->output->writeln('<comment>验证规则:</comment>', OutputInterface::VERBOSITY_NORMAL);
 
-        $rules = [];
         foreach ($fieldComments as $comment) {
-            if ($this->shouldExcludeField($comment['name'])) {
+            if ($this->isExcludedColumn($comment['name'])) {
                 continue;
             }
+            $fieldName = $comment['name'];
+            $isNullable = $comment['is_nullable'] === 'NO';
+            $baseType = preg_replace('/\(.*\)/', '', $comment['type']);
+            $baseType = strtolower($baseType);
+            $fieldComment = $comment['comment'] ?? '';
 
-            $rule = $comment['is_nullable'] === 'NO' ? 'required' : 'nullable';
+            // Start with required/nullable
+            $rule = $isNullable ?  'required' :'nullable';
 
-            // 根据字段类型添加特定规则
-            if (str_contains($comment['type'], 'int')) {
-                $rule .= '|integer';
-            } elseif (str_contains($comment['type'], 'decimal') || str_contains($comment['type'], 'float')) {
+            // Add type-specific rules
+            // Integer types
+            if (in_array($baseType, ['int', 'tinyint', 'smallint', 'mediumint', 'bigint'])) {
+                // Boolean fields (tinyint(1))
+                if ($baseType === 'tinyint' && strpos($comment['type'], '(1)') !== false) {
+                    $rule .= '|boolean';
+                } else {
+                    $rule .= '|integer';
+                    // Add size validation for known ID fields
+                    if ($fieldName === 'clique_id') {
+                        $rule .= '|min:60000000|max:99999999';
+                    } elseif ($fieldName === 'comkey') {
+                        $rule .= '|min:10000000|max:99999999';
+                    }
+                }
+            }
+            // Decimal/Float types
+            elseif (in_array($baseType, ['decimal', 'float', 'double'])) {
                 $rule .= '|numeric';
-            } elseif ($comment['type'] === 'json') {
+            }
+            // Boolean (could be enum('Y','N') or other representations)
+            elseif ($baseType === 'enum' && in_array(strtoupper($fieldComment), ['Y', 'N'])) {
+                $rule .= '|boolean';
+            }
+            // JSON types
+            elseif ($baseType === 'json') {
                 $rule .= '|array';
-            } elseif ($comment['type'] === 'datetime' || $comment['type'] === 'date') {
+            }
+            // Date/Time types
+            elseif (in_array($baseType, ['datetime', 'timestamp', 'date', 'time'])) {
                 $rule .= '|date';
-            } else {
+            }
+            // Email fields
+            elseif (strpos($fieldName, 'email') !== false || strpos($fieldComment, 'email') !== false) {
+                $rule .= '|email';
+            }
+            // URL fields
+            elseif (strpos($fieldName, 'url') !== false || strpos($fieldComment, 'url') !== false) {
+                $rule .= '|url';
+            }
+            // Phone fields (simple validation)
+            elseif (strpos($fieldName, 'phone') !== false || strpos($fieldComment, 'phone') !== false) {
+                $rule .= '|regex:/^1[3-9]\d{9}$/';
+            }
+            // String types with length validation
+            elseif (in_array($baseType, ['char', 'varchar', 'text'])) {
+                // Extract length from type (e.g. varchar(255) -> 255)
+                if (preg_match('/\((\d+)\)/', $comment['type'], $matches)) {
+                    $maxLength = $matches[1];
+                    $rule .= "|string|max:{$maxLength}";
+                } else {
+                    $rule .= '|string';
+                }
+            }
+            // Default to string
+            else {
                 $rule .= '|string';
             }
 
-            $rules[$comment['name']] = $rule;
+            // Add special rules based on field name or comment
+            if (strpos($fieldName, 'password') !== false) {
+                $rule .= '|min:6';
+            }
+            if (strpos($fieldName, '_at') !== false && $baseType === 'datetime') {
+                $rule .= '|date_format:Y-m-d H:i:s';
+            }
+
+            $rules[$fieldName] = $rule;
         }
 
-        // 格式化输出
-        $maxLength = max(array_map('strlen', array_keys($rules)));
+        // Output the rules in a more readable format
+        $this->info("\nValidation Rules:");
+        $this->info('[');
         foreach ($rules as $field => $rule) {
-            $this->output->writeln(sprintf(
-                "'%-{$maxLength}s' => '%s',",
-                $field,
-                $rule
-            ));
+            $result = str_replace('|', '\',\'', $rule);
+            $this->info("    '{$field}' => ['{$result}'],");
         }
+        $this->info(']');
     }
 
     protected function getFieldType(string $dbType, string $fieldName, string $comment): array
@@ -171,27 +228,57 @@ class GenerateParameterCommand extends HyperfCommand
         return ['string', $comment];
     }
 
-    protected function getFieldComments(string $tableName, string $connection): array
+    protected function getFieldComments(string $tableName, string $connection = null): array
     {
-        $sql = "SELECT COLUMN_NAME, COLUMN_COMMENT, IS_NULLABLE, DATA_TYPE
-            FROM INFORMATION_SCHEMA.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
-            AND TABLE_NAME = ?";
+        $connections = $this->getMysqlConnections();
 
+        if ($connection) {
+            $connections = array_intersect($connections, [$connection]);
+        }
 
-        $results = Db::connection($connection)->select($sql, [$tableName]);
+        foreach ($connections as $conn) {
+            try {
+                $sql = "SELECT
+                        COLUMN_NAME,
+                        COLUMN_COMMENT,
+                        IS_NULLABLE,
+                        DATA_TYPE
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = ?";
 
-        return array_map(function ($row) {
-            return [
-                'name' => $row->COLUMN_NAME,
-                'comment' => $row->COLUMN_COMMENT ?: $row->COLUMN_NAME,
-                'is_nullable' => $row->IS_NULLABLE,
-                'type' => strtolower($row->DATA_TYPE),
-            ];
-        }, $results);
+                $results = DB::connection($conn)->select($sql, [$tableName]);
+
+                if (!empty($results)) {
+                    return array_map(function ($row) {
+                        return [
+                            'name' => $row->COLUMN_NAME,
+                            'comment' => $row->COLUMN_COMMENT ?: $row->COLUMN_NAME,
+                            'is_nullable' => $row->IS_NULLABLE,
+                            'type' => $row->DATA_TYPE,
+                        ];
+                    }, $results);
+                }
+            } catch (\Exception $e) {
+                $this->warn("Connection '{$conn}' failed: " . $e->getMessage());
+                continue;
+            }
+        }
+
+        return [];
     }
 
-    protected function shouldExcludeField(string $fieldName): bool
+    /**
+     * Get all MySQL connections from config
+     *
+     * @return array
+     */
+    protected function getMysqlConnections(): array
+    {
+        return array_keys(config('databases'));
+    }
+
+    protected function isExcludedColumn(string $fieldName): bool
     {
         return in_array($fieldName, $this->excludeFields, true);
     }
