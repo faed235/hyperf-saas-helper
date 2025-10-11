@@ -136,18 +136,59 @@ if (!function_exists('multiGroupSum')){
 
 
 if (!function_exists('getTree')) {
-    function getTree($data, int $pid = 0, $field = 'pid'): array
-    {
+    /**
+     * 将扁平数组转换为树形结构
+     *
+     * @param array $data 原始数据数组
+     * @param int $pid 父级ID，默认为0（顶级节点）
+     * @param string $pidField 父级ID字段名，默认为'pid'
+     * @param string $idField 子级ID字段名，默认为'id'
+     * @param string $childrenKey 子节点数组键名，默认为'children'
+     * @return array
+     */
+    function getTree(
+        array $data,
+        int $pid = 0,
+        string $pidField = 'pid',
+        string $idField = 'id',
+        string $childrenKey = 'children'
+    ): array {
         $tree = [];
-        foreach ($data as $value) {
-            if ($value[$field] === $pid) {
-                $child = getTree($data, $value['id']);
-                if ($child) {
-                    $value['child'] = $child;
+        $itemsById = [];
+
+        // 预处理：建立ID到项的映射
+        foreach ($data as $item) {
+            if (!isset($item[$idField])) {
+                continue;
+            }
+            $itemsById[$item[$idField]] = $item;
+        }
+
+        // 构建树
+        foreach ($itemsById as $item) {
+            $parentId = $item[$pidField] ?? null;
+
+            // 跳过无效的父级引用（可选）
+            if ($parentId !== null && !isset($itemsById[$parentId]) && $parentId !== $pid) {
+                continue;
+            }
+
+            if ($parentId === $pid) {
+                // 顶级节点直接添加到树中
+                $tree[] = &$itemsById[$item[$idField]];
+            } else {
+                // 子节点添加到父节点的children数组中
+                if (isset($itemsById[$parentId])) {
+                    if (!isset($itemsById[$parentId][$childrenKey])) {
+                        $itemsById[$parentId][$childrenKey] = [];
+                    }
+                    $itemsById[$parentId][$childrenKey][] = &$itemsById[$item[$idField]];
                 }
-                $tree[] = $value;
             }
         }
+
+        // 清理引用并返回
+        unset($itemsById);
         return $tree;
     }
 }
