@@ -133,3 +133,21 @@ if (!function_exists('multiGroupSum')){
         return array_values($result);
     }
 }
+
+
+if (!function_exists('getTree')) {
+    function getTree($data, int $pid = 0, $field = 'pid'): array
+    {
+        $tree = [];
+        foreach ($data as $value) {
+            if ($value[$field] === $pid) {
+                $child = getTree($data, $value['id']);
+                if ($child) {
+                    $value['child'] = $child;
+                }
+                $tree[] = $value;
+            }
+        }
+        return $tree;
+    }
+}
