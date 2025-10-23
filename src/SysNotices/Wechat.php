@@ -11,7 +11,7 @@ use function Hyperf\Support\now;
 
 class Wechat
 {
-    public static function sendText(string|array $text = [], string $level = 'debug'): array|string
+    public static function sendText(string|array $text = [], string $level = 'debug',?string $customUrl = null): array|string
     {
         $data = [];
         if (is_string($text)){
@@ -31,7 +31,7 @@ class Wechat
 
         }
         $text = join(PHP_EOL, $argument);
-        $url = self::getUri($level);
+        $url = $customUrl ?? self::getUri($level);
         $data = ['msgtype' => 'text', 'text' => ['content' => $text]];
         return self::request($url, $data);
     }
