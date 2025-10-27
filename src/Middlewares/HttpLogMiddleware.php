@@ -24,6 +24,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use function Hyperf\Config\config;
 use function Hyperf\Support\env;
 
 class HttpLogMiddleware implements MiddlewareInterface
@@ -39,36 +40,39 @@ class HttpLogMiddleware implements MiddlewareInterface
         $startTime = microtime(true);
         $userId = $this->getUserIdFromToken($request);
 
-        $this->logRequest($request, $userId);
+        $additionalData = $this->getAdditionalRequestData($request); // 获取额外参数
+
+
+        $this->logRequest($request, $userId,$additionalData);
 
         $response = $handler->handle($request);
 
         $executionTime = $this->calculateExecutionTime($startTime);
-        $this->logResponse($request, $response, $executionTime, $userId);
+        $this->logResponse($request, $response, $executionTime, $userId,$additionalData);
         $this->handleSlowRequest($request, $executionTime, $userId);
 
         return $response;
     }
 
-    protected function logRequest(ServerRequestInterface $request, $userId): void
+    protected function logRequest(ServerRequestInterface $request, $userId,array $additionalData = []): void
     {
-        Log::get('Request', SysLogGroupConstant::HTTP)->info('请求', [
+        Log::get('请求', SysLogGroupConstant::HTTP)->info('请求', array_merge([
             'route' => $request->getUri()->getPath(),
             'method' => $request->getMethod(),
             'query' => $request->getQueryParams(),
             'body' => $request->getParsedBody(),
             'user_id' => $userId,
-        ]);
+        ], $additionalData));
     }
 
-    protected function logResponse(ServerRequestInterface $request, ResponseInterface $response, float $executionTime, $userId): void
+    protected function logResponse(ServerRequestInterface $request, ResponseInterface $response, float $executionTime, $userId,array $additionalData =[]): void
     {
-        Log::get('Response', SysLogGroupConstant::HTTP)->info('响应', [
+        Log::get('响应', SysLogGroupConstant::HTTP)->info('响应', array_merge($additionalData, [
             'time' => $executionTime,
             'route' => $request->getUri()->getPath(),
             'status' => $response->getStatusCode(),
             'user_id' => $userId,
-        ]);
+        ]));
     }
 
     protected function handleSlowRequest(ServerRequestInterface $request, float $executionTime, $userId): void
@@ -113,5 +117,14 @@ class HttpLogMiddleware implements MiddlewareInterface
             // 可考虑添加日志记录：Log::debug('JWT token解析失败', ['error' => $e->getMessage()]);
             return null;
         }
+    }
+
+    protected function getAdditionalRequestData(ServerRequestInterface $request): array
+    {
+        $data = [];
+        foreach (config('hyperf_saas_helper.log.extra_headers_to_log', []) as $value) {
+            $data[$value] = $request->getHeaderLine($value);
+        }
+        return $data;
     }
 }

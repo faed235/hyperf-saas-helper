@@ -23,10 +23,9 @@ return [
         ],
     ],
 
-    //http服务
-    'http'=>[
-        'sys'=>[
 
-        ],
+    'log'=>[
+        'http_channel'=>'http',
+        'extra_headers_to_log'=>[],
     ]
 ];
