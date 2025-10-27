@@ -56,13 +56,13 @@ class HttpLogMiddleware implements MiddlewareInterface
 
     protected function logRequest(ServerRequestInterface $request, $userId,array $additionalData = []): void
     {
-        Log::get('请求', SysLogGroupConstant::HTTP)->info('请求', array_merge([
+        Log::get('请求', SysLogGroupConstant::HTTP)->info('请求', array_merge($additionalData,[
             'route' => $request->getUri()->getPath(),
             'method' => $request->getMethod(),
             'query' => $request->getQueryParams(),
             'body' => $request->getParsedBody(),
             'user_id' => $userId,
-        ], $additionalData));
+        ]));
     }
 
     protected function logResponse(ServerRequestInterface $request, ResponseInterface $response, float $executionTime, $userId,array $additionalData =[]): void
