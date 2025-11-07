@@ -8,7 +8,11 @@ use DirectoryIterator;
 use GuzzleHttp\Client;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Context\ApplicationContext;
+use Hyperf\Contract\ApplicationInterface;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 use function Hyperf\Config\config;
 
 #[Command]
@@ -27,6 +31,17 @@ class UpApifoxCommand extends HyperfCommand
 
     public function handle(): void
     {
+        $command = 'gen:swagger';
+        $params = ["command" => $command];
+        $input = new ArrayInput($params);
+        $output = new NullOutput();
+
+        $container = ApplicationContext::getContainer();
+        $application = $container->get(ApplicationInterface::class);
+        $application->setAutoExit(false);
+        $exitCode = $application->run($input, $output);
+        $this->info(sprintf('生成文档完成:%s',$exitCode));
+
         $directory = config('swagger.json_dir');
         $iterator = new DirectoryIterator($directory);
         $files = [];
