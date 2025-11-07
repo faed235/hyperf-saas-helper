@@ -36,7 +36,7 @@ elif [ "$1" = "minor" ]; then
     MINOR=$((MINOR + 1))
     PATCH=0
 else
-    PATCH=$((PATCH + 10))  # 默认递增 patch
+    PATCH=$((PATCH + 1))  # 默认递增 patch
 fi
 
 NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
