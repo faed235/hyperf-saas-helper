@@ -192,3 +192,37 @@ if (!function_exists('getTree')) {
         return $tree;
     }
 }
+
+
+if (function_exists('group_array')) {
+    /**
+     * 高级数组分组（支持回调函数）
+     *
+     * @param array $data 源数组
+     * @param callable|string $groupBy 分组键或回调函数
+     * @param bool $preserveKeys 保留原始键
+     * @return array
+     */
+    function group_array(array $data, callable|string $groupBy, bool $preserveKeys = false): array
+    {
+        $result = [];
+        $callback = is_callable($groupBy) ? $groupBy : fn($item) => $item[$groupBy] ?? null;
+
+        foreach ($data as $key => $item) {
+            $groupValue = $callback($item, $key);
+            if ($groupValue === null) {
+                continue;
+            }
+
+            if ($preserveKeys) {
+                $result[$groupValue][$key] = $item;
+            } else {
+                $result[$groupValue][] = $item;
+            }
+        }
+
+        return $result;
+    }
+}
+
+
