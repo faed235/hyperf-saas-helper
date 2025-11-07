@@ -7,7 +7,7 @@
 set -e  # 遇到错误立即退出
 
 # 获取最新 Tag
-LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 echo "当前最新 Tag: $LATEST_TAG"
 
 # 解析版本号（格式：v<major>.<minor>.<patch>）
@@ -21,7 +21,7 @@ else
 fi
 
 # === 新增：删除上一次 Tag（本地和远程） ===
-if [ "$LATEST_TAG" != "v1.0.0" ]; then
+if [ "$LATEST_TAG" != "v0.0.0" ]; then
     echo "正在删除上一次 Tag: $LATEST_TAG..."
     git tag -d "$LATEST_TAG"  # 删除本地
     git push origin :refs/tags/"$LATEST_TAG"  # 删除远程
