@@ -194,7 +194,7 @@ if (!function_exists('getTree')) {
 }
 
 
-if (function_exists('group_array')) {
+if (!function_exists('group_array')) {
     /**
      * 高级数组分组（支持回调函数）
      *
