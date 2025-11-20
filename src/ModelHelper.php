@@ -5,16 +5,16 @@ namespace Faed\HyperfSaasHelper;
 use Hyperf\Conditionable\HigherOrderWhenProxy;
 use Hyperf\Database\Model\Builder;
 /**
- * @method static Builder search($value, $field, $operation = '=')
- * @method static Builder searchIn($value, $field, $operation = '=')
- * @method static Builder searchLike($value,$field)
- * @method static Builder searchTime($startTime = null , $endTime = null, string $field = 'created_at')
- * @method static Builder fieldDate($value,string $field = 'created_at')
- * @method static Builder startTime($value,string $field = 'created_at')
- * @method static Builder endTime($value,string $field = 'created_at')
- * @method static Builder hasSearch($name, $value, $field, string $operation='=')
- * @method static Builder searchArray(array $data = [], array $fields = [])
- * @method static Builder searchArrayLike(array $data = [], array $fields = [])
+ * @method static \Hyperf\Database\Model\Builder|self search(mixed $value, string $field, string $operation = '=')
+ * @method static \Hyperf\Database\Model\Builder|self searchIn($value, $field, $operation = '=')
+ * @method static \Hyperf\Database\Model\Builder|self searchLike($value,$field)
+ * @method static \Hyperf\Database\Model\Builder|self searchTime($startTime = null , $endTime = null, string $field = 'created_at')
+ * @method static \Hyperf\Database\Model\Builder|self fieldDate($value,string $field = 'created_at')
+ * @method static \Hyperf\Database\Model\Builder|self startTime($value,string $field = 'created_at')
+ * @method static \Hyperf\Database\Model\Builder|self endTime($value,string $field = 'created_at')
+ * @method static \Hyperf\Database\Model\Builder|self hasSearch($name, $value, $field, string $operation='=')
+ * @method static \Hyperf\Database\Model\Builder|self searchArray(array $data = [], array $fields = [])
+ * @method static \Hyperf\Database\Model\Builder|self searchArrayLike(array $data = [], array $fields = [])
  */
 trait ModelHelper
 {
