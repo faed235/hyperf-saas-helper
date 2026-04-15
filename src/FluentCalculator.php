@@ -155,8 +155,9 @@ class FluentCalculator implements JsonSerializable
         $this->ensureMutable();
         $normalized = $this->normalize($number);
 
-        if ($normalized === '0') {
-            throw new InvalidArgumentException('除数不能为零');
+        if ($normalized == '0') {
+            $this->value = '0';
+            return $this;
         }
 
         $this->value = self::$useBcMath
